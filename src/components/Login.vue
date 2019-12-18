@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!-- 登录框 -->
        <div class="loginDiv">
            <div class="div1" ></div>
             <img :src="AvatarUrl" class="logo">
@@ -17,7 +18,7 @@
                  <span class="span1">
                   <el-link class="textBtn" size="mini" type="primary">忘记密码</el-link>
                   &nbsp;
-                   <el-link class="textBtn" size="mini"  type="primary">立即注册</el-link>
+                   <el-link class="textBtn" size="mini" @click="RegistrationInterface"  type="primary">立即注册</el-link>
                    </span>
                 <el-button class="loginBtn" size="mini"  type="primary">登录</el-button>   
             </div>   
@@ -25,6 +26,20 @@
             </div>
             </div>
        </div>
+
+        <!-- 注册弹出框 -->
+        <el-dialog   title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="30%" center>
+            <el-form :model="regForm" :rules="regRules" ref="regForm" label-width="100px">
+                    <el-form-item label="账号" prop="s_account">
+                        <el-input v-model="regForm.s_account"></el-input>
+                    </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="RegistrationInterfaceVisible = false">取 消</el-button>
+                <el-button type="primary" @click="RegistrationInterfaceVisible = false">确 定</el-button>
+            </span>
+        </el-dialog>
+
     </div>
 </template>
 <script>
@@ -38,9 +53,22 @@ export default {
                 account:"",
                 password:""
             },
+            // 注册框可见状态
+            RegistrationInterfaceVisible:false,
+            // 注册表单对象
+            regForm:{
+                s_account:""
+            },
+            // 注册表单验证规则对象
+            regRules:{
+
+            }
         }
     },methods: {
-        
+        // 显示注册界面
+        RegistrationInterface(){
+            this.RegistrationInterfaceVisible=true;
+        }
     },mounted() {
           
     },
@@ -101,4 +129,8 @@ export default {
     left: 8px;
     top: 15px;
 }
+.dialog-footer{
+margin-left: 260px;
+}
+    
 </style>
