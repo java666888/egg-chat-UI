@@ -28,15 +28,43 @@
        </div>
 
         <!-- 注册弹出框 -->
-        <el-dialog   title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="30%" center>
-            <el-form :model="regForm" :rules="regRules" ref="regForm" label-width="100px">
-                    <el-form-item label="账号" prop="s_account">
-                        <el-input v-model="regForm.s_account"></el-input>
+        <el-dialog top="150px"  title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="20%" center>
+            <el-form class="from1" size="mini" :model="regForm" :rules="regRules" ref="regForm" >
+                   <el-form-item >
+                        <el-input  size="mini" placeholder="请输入账号" v-model="regForm.account">
+                        <template slot="prepend"><i class="el-icon-user-solid"></i></template>
+                        </el-input>
                     </el-form-item>
+                    
+                     <el-form-item >
+                        <el-input   size="mini" placeholder="请输入密码" v-model="regForm.password" show-password>
+                            <template slot="prepend"><i class="el-icon-lock"></i></template>
+                       </el-input>
+                    </el-form-item>
+
+                    <el-form-item >
+                        <el-input  size="mini" placeholder="确认密码" v-model="regForm.confrimPassword" show-password>
+                            <template slot="prepend"><i class="el-icon-lock"></i></template>
+                       </el-input>
+                    </el-form-item>
+
+                    <el-form-item >
+                       <el-input  size="mini" placeholder="电子邮箱" v-model="regForm.email">
+                        <template slot="prepend"><i class="el-icon-message"></i></template>
+                        </el-input>
+                    </el-form-item>
+
+                    <el-form-item label="性别" >
+                       <el-radio-group style="margin-left: 15px;" v-model="regForm.sex">
+                        <el-radio-button label="0">男</el-radio-button>
+                        <el-radio-button label="1">女</el-radio-button>
+                        </el-radio-group>
+                    </el-form-item>
+
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="RegistrationInterfaceVisible = false">取 消</el-button>
-                <el-button type="primary" @click="RegistrationInterfaceVisible = false">确 定</el-button>
+                <el-button size="mini" @click="RegistrationInterfaceVisible = false">取 消</el-button>
+                <el-button size="mini" type="primary" @click="RegistrationInterfaceVisible = false">确 定</el-button>
             </span>
         </el-dialog>
 
@@ -57,7 +85,11 @@ export default {
             RegistrationInterfaceVisible:false,
             // 注册表单对象
             regForm:{
-                s_account:""
+                s_account:"",
+                password:"",
+                confrimPassword:"",
+                email:"",
+                sex:"0"
             },
             // 注册表单验证规则对象
             regRules:{
@@ -129,8 +161,26 @@ export default {
     left: 8px;
     top: 15px;
 }
-.dialog-footer{
-margin-left: 260px;
+/deep/ .el-dialog__footer {
+    padding: 10px 20px 20px;
+    /* text-align: right;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box; */
+    margin-top: -40px;
+    margin-left:130px !important;
 }
-    
+.from1{
+        line-height: 20px;
+    margin-top: -20px;
+}   
+.el-form-item {
+    margin-bottom: 15px !important;
+}
+.el-input-group__prepend{
+    height: 27.8px !important;
+}
+
+/deep/ .el-input--mini .el-input__inner {
+    height: 27.6px;
+}
 </style>
