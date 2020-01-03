@@ -3,14 +3,14 @@
         <!-- 登录框 -->
        <div class="loginDiv">
            <div class="div1" ></div>
-            <img :src="AvatarUrl" class="logo">
+            <el-avatar  class="logo" :size="60" :src="AvatarUrl"></el-avatar>
             <div class="div2">
               <div class="div3">
-             <el-input class="account" size="mini" placeholder="请输入账号" v-model="loginForm.account">
+             <el-input class="account" clearable size="mini" placeholder="请输入账号" v-model="loginForm.s_account">
                   <template slot="prepend"><i class="el-icon-user-solid"></i></template>
              </el-input>
              
-             <el-input  class="password" size="mini" placeholder="请输入密码" v-model="loginForm.password" show-password>
+             <el-input  class="password" clearable size="mini" placeholder="请输入密码" v-model="loginForm.s_password" show-password>
                   <template slot="prepend"><i class="el-icon-lock"></i></template>
              </el-input>
 
@@ -18,9 +18,9 @@
                  <span class="span1">
                   <el-link class="textBtn" size="mini" type="primary">忘记密码</el-link>
                   &nbsp;
-                   <el-link class="textBtn" size="mini" @click="RegistrationInterface"  type="primary">立即注册</el-link>
+                   <el-link class="textBtn" size="mini" @click="showRegistrationBox"  type="primary">立即注册</el-link>
                    </span>
-                <el-button class="loginBtn" size="mini"  type="primary">登录</el-button>   
+                <el-button class="loginBtn" size="mini" @click="login()"  type="primary">登录</el-button>   
             </div>   
 
             </div>
@@ -28,34 +28,34 @@
        </div>
 
         <!-- 注册弹出框 -->
-        <el-dialog top="150px"  title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="20%" center>
-            <el-form class="from1" size="mini" :model="regForm" :rules="regRules" ref="regForm" >
-                   <el-form-item >
-                        <el-input  size="mini" placeholder="请输入账号" v-model="regForm.account">
+        <el-dialog top="150px"   title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="20%" center>
+            <el-form class="from1" status-icon size="mini" :model="regForm" :rules="regRules" ref="regForm" >
+                   <el-form-item prop="s_account" >
+                        <el-input  size="mini" placeholder="请输入账号" v-model="regForm.s_account">
                         <template slot="prepend"><i class="el-icon-user-solid"></i></template>
                         </el-input>
                     </el-form-item>
                     
-                     <el-form-item >
-                        <el-input   size="mini" placeholder="请输入密码" v-model="regForm.password" show-password>
+                     <el-form-item prop="s_password" >
+                        <el-input   size="mini" placeholder="请输入密码" v-model="regForm.s_password" show-password>
                             <template slot="prepend"><i class="el-icon-lock"></i></template>
                        </el-input>
                     </el-form-item>
 
-                    <el-form-item >
+                    <el-form-item prop="confrimPassword" >
                         <el-input  size="mini" placeholder="确认密码" v-model="regForm.confrimPassword" show-password>
                             <template slot="prepend"><i class="el-icon-lock"></i></template>
                        </el-input>
                     </el-form-item>
 
-                    <el-form-item >
-                       <el-input  size="mini" placeholder="电子邮箱" v-model="regForm.email">
+                    <el-form-item prop="s_email" >
+                       <el-input  size="mini" placeholder="电子邮箱" v-model="regForm.s_email">
                         <template slot="prepend"><i class="el-icon-message"></i></template>
                         </el-input>
                     </el-form-item>
 
                     <el-form-item label="性别" >
-                       <el-radio-group style="margin-left: 15px;" v-model="regForm.sex">
+                       <el-radio-group style="margin-left: 15px;" v-model="regForm.s_sex">
                         <el-radio-button label="0">男</el-radio-button>
                         <el-radio-button label="1">女</el-radio-button>
                         </el-radio-group>
@@ -63,8 +63,8 @@
 
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button size="mini" @click="RegistrationInterfaceVisible = false">取 消</el-button>
-                <el-button size="mini" type="primary" @click="RegistrationInterfaceVisible = false">确 定</el-button>
+                <el-button size="mini" @click="registrationBoxClose">取 消</el-button>
+                <el-button size="mini" type="primary" @click="registration">确 定</el-button>
             </span>
         </el-dialog>
 
@@ -73,34 +73,131 @@
 <script>
 export default {
     data() {
+          //确认密码校验方法
+          var  validatePass=(rule, value, callback)=>{
+              if(value==''){
+                   callback(new Error('请再次输入密码'));
+              }else if(value != this.regForm.s_password){
+                  callback(new Error('两次输入密码不一致!'));
+              }else{
+                   callback();
+              }
+          }
+          //校验账号是否可用
+          var validateAccount=(rule, value, callback)=>{
+                 let that = this;
+              if(value==''){
+                return    callback(new Error('请输入账号'));
+              }else if(value.search(/^[a-zA-Z][a-zA-Z0-9]{5,13}$/)==-1){
+                return   callback(new Error('长度6-14位,必须以字母开头'));
+              } 
+              //满足规则之后验证该账号是否已注册
+              that.checkUserAccount(value).then(f=>{
+                   if(!f){
+                      callback(new Error('该账号已注册'));
+                  }else{
+                      callback();
+                  }
+              });
+          }
+
         return {
             //头像url
-            AvatarUrl:require("../assets/logo.png"),
+            AvatarUrl:require("../assets/images/logo.png"),
             //登录表单对象
             loginForm:{
-                account:"",
-                password:""
+                s_account:"",
+                s_password:""
             },
             // 注册框可见状态
             RegistrationInterfaceVisible:false,
             // 注册表单对象
             regForm:{
                 s_account:"",
-                password:"",
+                s_password:"",
                 confrimPassword:"",
-                email:"",
-                sex:"0"
+                s_email:"",
+                s_sex:"0"
             },
             // 注册表单验证规则对象
             regRules:{
-
-            }
+             s_account: [
+             { validator:validateAccount, trigger: 'blur' }
+            ],
+            s_password:[
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min:8, max: 16, message: '密码长度在8-16位', trigger: 'blur' }
+            ],
+            confrimPassword:[
+                 { validator: validatePass, trigger: 'blur' }
+            ],
+            s_email:[
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+			{ type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+            ]
+            },
         }
     },methods: {
-        // 显示注册界面
-        RegistrationInterface(){
+        // 显示注册框
+        showRegistrationBox(){
             this.RegistrationInterfaceVisible=true;
-        }
+        },
+        //检查用户账号是否可用
+        checkUserAccount(account){
+        return new Promise((resolve, reject)=>{
+             this.$axios.get("/api/user/checkUserAccount",{params:{"account":account}}).then((resp)=>{
+              resolve(resp.data.data.checkUserAccount);
+            });
+        });    
+      },
+      //注册框关闭
+      registrationBoxClose(){
+          this.RegistrationInterfaceVisible=false;
+          this.$refs.regForm.resetFields();   
+          this.regForm.s_sex="0";
+      },
+      //注册
+      registration(){
+          this.$refs.regForm.validate((valid) => {
+          if (valid) {
+             this.$axios.post("/api/user/userRegister",this.regForm).then((resp)=>{
+               if(resp.data.code==10005){
+                    this.$message({
+                        message: '注册成功',
+                        type: 'success'
+                    });
+               }else{
+                  this.$message.error('注册失败');
+               }
+               this.RegistrationInterfaceVisible=false;
+               this.$refs.regForm.resetFields();
+               this.regForm.s_sex="0";
+            });
+          }
+        });
+      },
+      //登录
+      login(){
+          if(this.loginForm.s_account!=""&&this.loginForm.s_password!=""){
+              this.$axios.get("/api/user/userLogin",{params:this.loginForm}).then(resp=>{
+                  if(resp.data.code==10000){
+                      this.$notify.error({
+                        title: '提示',
+                        message: '用户名或密码错误'
+                        });
+                  }else{
+                      //存储token
+                      localStorage.setItem("token", resp.data.data.token);
+                        this.$notify({
+                        title: '提示',
+                        message: '登录成功',
+                        type: 'success'
+                        });
+                      this.$router.push("/Home");
+                  }
+              });
+          }
+      }
     },mounted() {
           
     },
@@ -119,18 +216,16 @@ export default {
 .div1{
     height: 160px;
     border-radius: 4px 4px 0 0;
-    background: url("../assets/bkImg-1.jpg") no-repeat center;
+    background: url("../assets/images/bkImg-1.jpg") no-repeat center;
     background-size: cover;
     background-size: 100% auto; 
 }
 .logo{
     position: absolute;
     top: 120px;
-    left: 166px;
-    border-radius:50%;
-    height: 64px;
-    width: 64px;
+    left: 176px;
     z-index: 999;
+     background: none;
 }
 .div2{
     background: white;
@@ -183,4 +278,6 @@ export default {
 /deep/ .el-input--mini .el-input__inner {
     height: 27.6px;
 }
+
+
 </style>

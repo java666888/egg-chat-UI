@@ -9,7 +9,7 @@
 export default {
   data() {
     return {
-     img:require("../src/assets/bkImg-1.jpg")
+     img:require("../src/assets/images/bkImg-1.jpg")
     }
   },methods: {
     //获取背景高清大图链接
