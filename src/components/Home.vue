@@ -3,9 +3,11 @@
             <div class="container">
                 <div class="meun">
                     <el-avatar fit="scale-down" class="logo"  :src="AvatarUrl"></el-avatar>
-                    <ul class="enumList">
-                        <li><img class="li1" @click="sessionClick" :src="sessionImgUrl" alt="会话"></li>
-                        <li><img  :src="settingImgUrl" @click="settingClick"  alt="设置"></li>
+                    <ul class="enumList"  v-for="item in sidebarImgArray" :key="item.activeUrl"  >
+                        <!-- <li><img class="li1" title="聊天" @click="sessionClick" :src="sessionImgUrl" alt="会话"></li>
+                        <li><img  title="加好友" @click="sessionClick" :src="sessionImgUrl" alt="会话"></li>
+                        <li><img  title="设置" :src="settingImgUrl" @click="settingClick"  alt="设置"></li> -->
+                        <li><img  :title="item.title" @click="sidebarImgClick(item)"  :src="item.activeStatus?item.activeUrl:item.noActiveUrl" ></li>
                     </ul>
                 </div>
                 <div class="userList">
@@ -28,24 +30,29 @@ export default {
         return {
             //头像url
             AvatarUrl:require("../assets/images/logo.png"),
-            //会话未激活图片
-            sessionImgUrl:require("../assets/images/session.svg"),
-            //设置未激活图片
-            settingImgUrl:require("../assets/images/setting.svg"),
+            //定义侧边栏图标数组
+            sidebarImgArray:[
+                {"activeStatus":true,"title":"聊天","activeUrl":require("../assets/images/session-active.svg"),"noActiveUrl":require("../assets/images/session.svg")},
+                {"activeStatus":false,"title":"加好友","activeUrl":require("../assets/images/addUser-active.svg"),"noActiveUrl":require("../assets/images/addUser.svg")},
+                {"activeStatus":false,"title":"设置","activeUrl":require("../assets/images/setting-active.svg"),"noActiveUrl":require("../assets/images/setting.svg")},
+            ],
         }
     },methods: {
-        //会话图标点击
-      sessionClick(){
-          this.sessionImgUrl=require("../assets/images/session-active.svg");
-          this.settingImgUrl=require("../assets/images/setting.svg");
-      },
-      //设置图标点击
-      settingClick(){
-           this.sessionImgUrl=require("../assets/images/session.svg");
-          this.settingImgUrl=require("../assets/images/setting-active.svg");
-      }
+        sidebarImgClick(item){
+            //将数组所有元素改为未选中 
+            this.sidebarImgArray.forEach(item1=>{
+                item1.activeStatus=false;
+            });
+            //将点击按钮改为选中
+            item.activeStatus=true;
+            //得到当前点击图标的值
+            let clickValue=item.title;
+            
+        }
     },mounted() {
-       this.sessionClick();
+    //    this.sessionClick();
+       this.$axios.get("/api/user/test");
+       console.log(this.str);
     },
 }
 </script>
