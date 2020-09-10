@@ -1,22 +1,25 @@
 <template>
     <div>
             <div class="container">
+                <!-- 菜单栏 -->
                 <div class="meun">
                     <el-avatar fit="scale-down" class="logo"  :src="AvatarUrl"></el-avatar>
                     <ul class="enumList"  v-for="item in sidebarImgArray" :key="item.activeUrl"  >
-                        <!-- <li><img class="li1" title="聊天" @click="sessionClick" :src="sessionImgUrl" alt="会话"></li>
-                        <li><img  title="加好友" @click="sessionClick" :src="sessionImgUrl" alt="会话"></li>
-                        <li><img  title="设置" :src="settingImgUrl" @click="settingClick"  alt="设置"></li> -->
                         <li><img  :title="item.title" @click="sidebarImgClick(item)"  :src="item.activeStatus?item.activeUrl:item.noActiveUrl" ></li>
                     </ul>
                 </div>
+                <!-- 用户列表 -->
                 <div class="userList">
                     <div class="searchDiv">
-                        <!-- <el-input class="search" placeholder="搜索" prefix-icon="el-icon-search"></el-input> -->
                     <i class="el-icon-search searchIcon"  ></i>
                     <input type="text" placeholder="搜索" class="search">
                     </div>
+                    <!-- 好友列表开始 -->
+                    <div class="userItem">
+                        
+                    </div>
                 </div>
+                <!-- 聊天界面 -->
                 <div class="chat">
 
                 </div>
@@ -29,7 +32,7 @@ export default {
     data() {
         return {
             //头像url
-            AvatarUrl:require("../assets/images/logo.png"),
+            AvatarUrl:localStorage.getItem("AvatarUrl")!=null?localStorage.getItem("AvatarUrl"):require("../assets/images/logo.png"),
             //定义侧边栏图标数组
             sidebarImgArray:[
                 {"activeStatus":true,"title":"聊天","activeUrl":require("../assets/images/session-active.svg"),"noActiveUrl":require("../assets/images/session.svg")},
@@ -38,6 +41,7 @@ export default {
             ],
         }
     },methods: {
+        //侧边栏点击方法
         sidebarImgClick(item){
             //将数组所有元素改为未选中 
             this.sidebarImgArray.forEach(item1=>{
@@ -48,10 +52,19 @@ export default {
             //得到当前点击图标的值
             let clickValue=item.title;
             
+        },
+        //查询当前用户好友列表
+        queryBuddyList(){
+            //得到当前用户账号
+            let userAccount=localStorage.getItem("account");
+            //发起请求
+            this.$axios.get("/api/buddy/list/"+userAccount).then(resp=>{
+                console.log(resp.data);
+            });
         }
     },mounted() {
-    //    this.sessionClick();
-       this.$axios.get("/api/user/test");
+       this.queryBuddyList(); 
+
        console.log(this.str);
     },
 }
@@ -128,5 +141,11 @@ export default {
 }
 .li1{
     margin-bottom: 10px;
+}
+.userItem{
+    width: 90%;
+    height: 10%;
+    background-color: red;
+    margin-left: 5%;
 }
 </style>

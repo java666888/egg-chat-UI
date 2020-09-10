@@ -6,7 +6,7 @@
             <el-avatar  class="logo" :size="60" :src="AvatarUrl"></el-avatar>
             <div class="div2">
               <div class="div3">
-             <el-input class="account" clearable size="mini" placeholder="请输入账号" v-model="loginForm.s_account">
+             <el-input class="account"  @blur="getHeadPortrait()"  clearable size="mini" placeholder="请输入账号" v-model="loginForm.s_account">
                   <template slot="prepend"><i class="el-icon-user-solid"></i></template>
              </el-input>
              
@@ -27,9 +27,15 @@
             </div>
        </div>
 
-        <!-- 注册弹出框 -->
-        <el-dialog top="150px"   title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="20%" center>
-            <el-form class="from1" status-icon size="mini" :model="regForm" :rules="regRules" ref="regForm" >
+        <!-- 注册弹出框  -->
+        <el-dialog  top="150px" @close="registrationBoxClose"   title="注册账号" :close-on-click-modal="false" :close-on-press-escape="false" :visible.sync="RegistrationInterfaceVisible"  width="20%" center>
+            <el-form  class="from1" status-icon size="mini" :model="regForm" :rules="regRules" ref="regForm" >
+                 <el-form-item prop="s_nike_name" >
+                        <el-input  size="mini" placeholder="请输入昵称" v-model="regForm.s_nike_name">
+                        <template slot="prepend"><i class="el-icon-user"></i></template>
+                        </el-input>
+                    </el-form-item>
+
                    <el-form-item prop="s_account" >
                         <el-input  size="mini" placeholder="请输入账号" v-model="regForm.s_account">
                         <template slot="prepend"><i class="el-icon-user-solid"></i></template>
@@ -54,13 +60,24 @@
                         </el-input>
                     </el-form-item>
 
+                    <el-row>
+                        <el-col :span="12">
                     <el-form-item label="性别" >
-                       <el-radio-group style="margin-left: 15px;" v-model="regForm.s_sex">
+                        <el-radio-group style="margin-left: 15px;" v-model="regForm.s_sex">
                         <el-radio-button label="0">男</el-radio-button>
                         <el-radio-button label="1">女</el-radio-button>
                         </el-radio-group>
                     </el-form-item>
+                        </el-col>
 
+                         <el-col :span="12">
+                  <el-form-item   el-form-item label="上传头像" >
+                    <el-button native-type="file" @click="clickUploadImg()" type="primary">上传<i class="el-icon-upload el-icon--right"></i></el-button>
+                    <input type="file" ref="uploadImg"  accept="image/*"  id="uploadImg" v-show="false" @change="imgToBase64()" />
+                    </el-form-item>
+                         </el-col>
+                    </el-row>
+                    
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button size="mini" @click="registrationBoxClose">取 消</el-button>
@@ -117,12 +134,18 @@ export default {
                 s_password:"",
                 confrimPassword:"",
                 s_email:"",
-                s_sex:"0"
+                s_sex:"0",
+                s_nike_name:"",
+                s_head_portrait:"",
             },
             // 注册表单验证规则对象
             regRules:{
              s_account: [
              { validator:validateAccount, trigger: 'blur' }
+            ],
+            s_nike_name:[
+            { required: true, message: '请输入昵称', trigger: 'blur' },
+            { min:2, max: 10, message: '昵称长度在2-10位', trigger: 'blur' }
             ],
             s_password:[
             { required: true, message: '请输入密码', trigger: 'blur' },
@@ -145,7 +168,7 @@ export default {
         //检查用户账号是否可用
         checkUserAccount(account){
         return new Promise((resolve, reject)=>{
-             this.$axios.get("/api/user/checkUserAccount",{params:{"account":account}}).then((resp)=>{
+             this.$axios.get("/api/user/userAccount/"+account).then((resp)=>{
               resolve(resp.data.data.checkUserAccount);
             });
         });    
@@ -179,7 +202,8 @@ export default {
       //登录
       login(){
           if(this.loginForm.s_account!=""&&this.loginForm.s_password!=""){
-              this.$axios.get("/api/user/userLogin",{params:this.loginForm}).then(resp=>{
+              this.$axios.post("/api/user/userLogin",this.$qs.stringify(this.loginForm),
+              { headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(resp=>{
                   if(resp.data.code==10000){
                       this.$notify.error({
                         title: '提示',
@@ -193,13 +217,61 @@ export default {
                         message: '登录成功',
                         type: 'success'
                         });
+                        //存储当前登录用户账号
+                        localStorage.setItem("account", this.loginForm.s_account);
                       this.$router.push("/Home");
                   }
               });
           }
+      },
+      //图片转base64
+      imgToBase64(){
+      let image= document.getElementById('uploadImg').files[0];
+      //支持的图片类型
+      let imageTypeArr=[".jpg",".png"]
+      if(image.size>2097152){
+         this.$message.error('图片大小不能超过1M');
+        return 0;
       }
+      let imageType=image.name.substring(image.name.indexOf(".",0));
+      if(imageTypeArr.indexOf(imageType)==-1){
+         this.$message.error('图片只支持jpg和png格式');
+        return 0;
+      }
+      var _this=this;
+       var reader = new FileReader(); //实例化文件读取对象
+                reader.readAsDataURL(image); //将文件读取为 DataURL,也就是base64编码
+                reader.onload = function(ev) { //文件读取成功完成时触发
+                    var dataURL = ev.target.result; //获得文件读取成功后的DataURL,也就是base64编码
+                   _this.regForm.s_head_portrait=dataURL;
+                    _this.$message({
+          message: '图片上传成功',
+          type: 'success'
+        });
+                }
+
+      },
+      //获取头像
+      getHeadPortrait(){
+           let account=this.loginForm.s_account;
+           if(account==null||account==""){
+               return 0;
+           }
+           let _this=this;
+           this.$axios.get("/api/user/headPortrait/"+account).then(resp=>{
+               console.log(resp.data);
+               if(resp.data.data!=null){
+                    _this.AvatarUrl=resp.data.data;
+                    localStorage.setItem("AvatarUrl",resp.data.data);
+               }
+           });
+      },
+      //点击原生上传组件
+      clickUploadImg(){
+        document.getElementById('uploadImg').click();
+      },
     },mounted() {
-          
+       
     },
 }
 </script>

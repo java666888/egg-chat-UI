@@ -30,6 +30,11 @@ axios.interceptors.response.use(
         return response;
     },
     err=>{
+        if(err.response.status==500){
+            router.replace("/");
+            localStorage.removeItem("token");
+            console.log("未知服务器错误");
+        }
         return Promise.reject(err);
     }
 );
